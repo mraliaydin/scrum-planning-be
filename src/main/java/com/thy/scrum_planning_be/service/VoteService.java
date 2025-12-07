@@ -16,12 +16,11 @@ import java.util.UUID;
 public class VoteService {
 
     private final VoteRepository voteRepository;
-    private final WebSocketService webSocketService;
 
     @Transactional
-    public void vote(UUID roomId, UUID taskId, VoteRequest request) {
+    public void vote(UUID taskId, VoteRequest request) {
         Optional<Vote> existingVote = voteRepository.findByTaskIdAndUserId(taskId, request.getUserId());
-        
+
         Vote vote;
         if (existingVote.isPresent()) {
             vote = existingVote.get();
@@ -35,24 +34,20 @@ public class VoteService {
                     .build();
         }
         voteRepository.save(vote);
-
-        // Notify room that user voted (hide point)
-        webSocketService.notifyRoom(roomId, "USER_VOTED", request.getUserId());
+        // Notify işlemi buradan kaldırıldı. Controller yapacak.
     }
 
     @Transactional
-    public List<Vote> revealVotes(UUID roomId, UUID taskId) {
+    public List<Vote> revealVotes(UUID taskId) {
         List<Vote> votes = voteRepository.findByTaskId(taskId);
         votes.forEach(v -> v.setRevealed(true));
-        voteRepository.saveAll(votes);
 
-        webSocketService.notifyRoom(roomId, "VOTES_REVEALED", votes);
-        return votes;
+        // saveAll güncellenmiş listeyi döner, bunu return ediyoruz
+        return voteRepository.saveAll(votes);
     }
 
     @Transactional
-    public void revote(UUID roomId, UUID taskId) {
+    public void revote(UUID taskId) {
         voteRepository.deleteByTaskId(taskId);
-        webSocketService.notifyRoom(roomId, "REVOTE_STARTED", taskId);
     }
 }

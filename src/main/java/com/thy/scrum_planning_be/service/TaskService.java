@@ -18,11 +18,10 @@ import java.util.UUID;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final WebSocketService webSocketService;
 
     @Transactional
     public Task createTask(UUID roomId, TaskRequest request) {
-        // Deactivate current active task if any
+        // Varsa mevcut aktif taskı bul ve tamamlandı olarak işaretle
         Optional<Task> currentTask = taskRepository.findByRoomIdAndStatus(roomId, TaskStatus.ACTIVE);
         currentTask.ifPresent(task -> {
             task.setStatus(TaskStatus.COMPLETED);
@@ -36,10 +35,8 @@ public class TaskService {
                 .description(request.getDescription())
                 .status(TaskStatus.ACTIVE)
                 .build();
-        task = taskRepository.save(task);
 
-        webSocketService.notifyRoom(roomId, "NEW_TASK", task);
-        return task;
+        return taskRepository.save(task);
     }
 
     public Optional<Task> getActiveTask(UUID roomId) {
@@ -47,17 +44,16 @@ public class TaskService {
     }
 
     @Transactional
-    public Task completeTask(UUID roomId, UUID taskId, String finalPoint) {
+    public Task completeTask(UUID taskId, String finalPoint) {
+        // roomId parametresini kaldırdık, sadece task işlemi yapıyoruz.
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
-        
+
         task.setStatus(TaskStatus.COMPLETED);
         task.setCompletedAt(LocalDateTime.now());
         task.setFinalPoint(finalPoint);
-        task = taskRepository.save(task);
 
-        webSocketService.notifyRoom(roomId, "TASK_COMPLETED", task);
-        return task;
+        return taskRepository.save(task);
     }
 
     public List<Task> getTaskHistory(UUID roomId) {

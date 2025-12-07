@@ -1,13 +1,10 @@
 package com.thy.scrum_planning_be.dto;
 
 import lombok.Data;
-
 import java.util.UUID;
 
 @Data
-public class VoteRequest {
+public class CompleteTaskRequest {
     private UUID taskId;
-    private UUID userId;
-    private String username;
-    private String point;
+    private String finalPoint;
 }
