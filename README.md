@@ -6,21 +6,14 @@ This is a Spring Boot application for a Scrum Poker tool, designed for internal 
 
 - Java 21
 - Maven
-- PostgreSQL
 
 ## Setup
 
-1.  **Database**: Create a PostgreSQL database named `scrum_poker`.
-2.  **Configuration**: Update `src/main/resources/application.properties` with your database credentials if they differ from the defaults:
-    ```properties
-    spring.datasource.url=jdbc:postgresql://localhost:5432/scrum_poker
-    spring.datasource.username=postgres
-    spring.datasource.password=postgres
-    ```
-3.  **Run**:
+1.  **Run**:
     ```bash
     ./mvnw spring-boot:run
     ```
+    The application uses an in-memory H2 database, so no external database setup is required.
 
 ## API Documentation
 
@@ -68,7 +61,7 @@ This is a Spring Boot application for a Scrum Poker tool, designed for internal 
 ## Architecture
 
 - **Framework**: Spring Boot 3.x
-- **Database**: PostgreSQL
+- **Database**: H2 (In-Memory)
 - **Real-time**: WebSocket (STOMP)
 - **Structure**: Controller -> Service -> Repository (JPA)
 

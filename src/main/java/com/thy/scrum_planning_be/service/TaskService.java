@@ -1,9 +1,12 @@
 package com.thy.scrum_planning_be.service;
 
 import com.thy.scrum_planning_be.dto.TaskRequest;
+import com.thy.scrum_planning_be.dto.TaskWithVotesResponse;
 import com.thy.scrum_planning_be.entity.Task;
 import com.thy.scrum_planning_be.entity.TaskStatus;
+import com.thy.scrum_planning_be.entity.Vote;
 import com.thy.scrum_planning_be.repository.TaskRepository;
+import com.thy.scrum_planning_be.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,7 @@ import java.util.UUID;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final VoteRepository voteRepository;
 
     @Transactional
     public Task createTask(UUID roomId, TaskRequest request) {
@@ -39,8 +43,24 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Optional<Task> getActiveTask(UUID roomId) {
-        return taskRepository.findByRoomIdAndStatus(roomId, TaskStatus.ACTIVE);
+    public Optional<TaskWithVotesResponse> getActiveTask(UUID roomId) {
+        Optional<Task> taskOpt = taskRepository.findByRoomIdAndStatus(roomId, TaskStatus.ACTIVE);
+
+        if (taskOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Task task = taskOpt.get();
+        List<Vote> votes = voteRepository.findByTaskId(task.getId());
+        
+        // Eğer oylardan herhangi biri revealed ise, genel durum revealed kabul edilir.
+        boolean isRevealed = votes.stream().anyMatch(Vote::isRevealed);
+
+        return Optional.of(TaskWithVotesResponse.builder()
+                .task(task)
+                .votes(votes)
+                .isRevealed(isRevealed)
+                .build());
     }
 
     @Transactional

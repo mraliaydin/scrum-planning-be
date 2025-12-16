@@ -3,6 +3,7 @@ package com.thy.scrum_planning_be.controller;
 import com.thy.scrum_planning_be.aspect.Loggable;
 import com.thy.scrum_planning_be.dto.CreateRoomResponse;
 import com.thy.scrum_planning_be.dto.RoomRequest;
+import com.thy.scrum_planning_be.dto.TaskWithVotesResponse;
 import com.thy.scrum_planning_be.entity.Room;
 import com.thy.scrum_planning_be.entity.Task;
 import com.thy.scrum_planning_be.entity.User;
@@ -47,7 +48,7 @@ public class RoomController {
     // Sayfa ilk yüklendiğinde aktif bir oylama varsa onu göstermek için
     @Loggable
     @GetMapping("/{roomId}/tasks/current")
-    public ResponseEntity<Task> getActiveTask(@PathVariable UUID roomId) {
+    public ResponseEntity<TaskWithVotesResponse> getActiveTask(@PathVariable UUID roomId) {
         return taskService.getActiveTask(roomId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());

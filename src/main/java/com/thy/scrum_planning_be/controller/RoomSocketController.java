@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
@@ -40,9 +41,17 @@ public class RoomSocketController {
     @Loggable
     @MessageMapping("/join")
     @SendToUser("/queue/join-response") // Cevap sadece isteği atana döner
-    public User joinRoom(@Payload JoinRoomRequest request) {
+    public User joinRoom(@Payload JoinRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
         // Servis artık isim ile buluyor
         User user = roomService.joinRoom(request);
+
+        // --- YENİ EKLENEN KISIM: Session'a bilgileri kaydet ---
+        // Bu bilgiler bağlantı koptuğunda (DisconnectEvent) kullanılacak.
+        if (headerAccessor.getSessionAttributes() != null) {
+            headerAccessor.getSessionAttributes().put("userId", user.getId());
+            headerAccessor.getSessionAttributes().put("roomId", user.getRoomId());
+        }
+        // ------------------------------------------------------
 
         // 1. Zaten içeride olanlara haber ver (Broadcast)
         // User objesi içinde roomId olduğu için doğru kanala gidecek.
