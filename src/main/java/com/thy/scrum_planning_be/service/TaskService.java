@@ -76,6 +76,19 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
+    @Transactional
+    public UUID cancelTask(UUID taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        UUID roomId = task.getRoomId();
+
+        voteRepository.deleteByTaskId(taskId);
+        taskRepository.delete(task);
+
+        return roomId;
+    }
+
     public List<Task> getTaskHistory(UUID roomId) {
         return taskRepository.findByRoomIdAndStatusOrderByCompletedAtDesc(roomId, TaskStatus.COMPLETED);
     }

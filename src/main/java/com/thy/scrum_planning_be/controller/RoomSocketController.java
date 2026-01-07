@@ -136,6 +136,25 @@ public class RoomSocketController {
         broadcast(roomId, "TASK_COMPLETED", task);
     }
 
+    /**
+     * Task iptal edildiğinde (yanlış açıldıysa silinir).
+     * Client: /app/room/{roomId}/tasks/cancel
+     */
+    @Loggable
+    @MessageMapping("/room/{roomId}/tasks/cancel")
+    public void cancelTask(@DestinationVariable UUID roomId, @Payload UUID taskId) {
+        // Task silinir
+        UUID deletedTaskRoomId = taskService.cancelTask(taskId);
+
+        // Eğer roomId uyuşmuyorsa (güvenlik kontrolü gibi düşünebiliriz)
+        if (!deletedTaskRoomId.equals(roomId)) {
+            log.warn("Task room id mismatch! Request room: {}, Task room: {}", roomId, deletedTaskRoomId);
+        }
+
+        // Herkese taskın iptal edildiğini duyur
+        broadcast(roomId, "TASK_CANCELLED", null);
+    }
+
     // --- Helper Method ---
 
     private void broadcast(UUID roomId, String type, Object payload) {
